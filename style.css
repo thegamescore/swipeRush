@@ -8,3 +8,28 @@ button{min-height:48px;height:7.1cqw;max-height:56px;border:0;border-radius:11px
 @media(max-width:480px){body{padding:12px}.game-card{border-radius:16px}.status-strip{height:46px;padding:0 20px}.instruction-strip{height:32px;font-size:10px}.start-screen{gap:4.5cqw}.guide canvas{width:82%;margin-bottom:10px}.guide .guide-secondary{margin-top:4px}.mobile-break{display:block}button{padding:0 22px;gap:26px;min-height:44px}.result-heading{gap:10px}.completion-mark{width:30px;height:30px;font-size:17px}}
 @media(prefers-reduced-motion:reduce){button{transition:none}}
 @container(max-width:480px){.start-screen{gap:2.5cqw}.guide canvas{width:68%;aspect-ratio:1000/300;margin-bottom:6px}.guide .guide-secondary{margin-top:4px}h1{font-size:clamp(28px,9.1cqw,44px)}}
+/* gamesCore_ campaign identity. Brand font self-hosted from cdn.thegamescore.com. */
+@font-face{font-family:Recoleta;src:url('/fonts/recoleta-alt-bold.woff2') format('woff2');font-style:normal;font-weight:700;font-display:swap}
+:root{--page:#020617;--surface:#101729;--accent:#8b5cf6;--ink:#f8fafc;--muted:#94a3b8;--border:#342d50}
+.status-strip,.instruction-strip{background:#0b1020}
+h1{font-family:Recoleta,Georgia,serif;font-weight:700;letter-spacing:-.045em;line-height:1.1;text-align:center}
+h1>span:not(.brand-wordmark){color:#a78bfa}.brand-wordmark{display:block;font-size:clamp(13px,2.6cqw,20px);letter-spacing:-.045em;color:var(--ink);line-height:1;margin-bottom:16px}.brand-wordmark span{color:var(--accent)}
+.title-mark{top:38%;stroke:#a78bfa}
+button{background:#7c3aed;color:#fff}button:hover{background:#8b5cf6;box-shadow:0 5px 25px #8b5cf624}
+.result-score #final-score{color:#a78bfa}h2{font-family:Recoleta,Georgia,serif}
+@container(max-width:480px){.brand-wordmark{margin-bottom:8px;font-size:12px}.start-screen{gap:2cqw}.guide canvas{width:61%;aspect-ratio:1000/280;margin-bottom:4px}h1{font-size:clamp(26px,9cqw,44px)}}
+/* Tablet + mobile: game fills whole screen. Screens keep 1000:720 box, centered. */
+@media(max-width:1024px),(pointer:coarse) and (hover:none){
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{padding:0;min-height:0;height:100dvh;display:block}
+.game-card{width:100%!important;height:100%;border:0;border-radius:0;box-shadow:none;display:flex;flex-direction:column}
+.status-strip{flex:none;padding-top:env(safe-area-inset-top);padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right));box-sizing:content-box}
+.instruction-strip{flex:none;padding-bottom:env(safe-area-inset-bottom);box-sizing:content-box}
+.playfield{flex:1;min-height:0;aspect-ratio:auto;container-type:size}
+.screen{container-type:inline-size;width:min(100%,138.9cqh);margin-inline:auto}
+}
+/* Sound toggle. Sits right in status strip, visible on every screen. */
+.status-strip{display:flex;align-items:center;gap:18px}.hud{flex:1}
+.mute{margin-left:auto;flex:none;width:36px;height:36px;min-height:0;max-height:none;padding:0;gap:0;border-radius:10px;background:transparent;border:1px solid var(--border);color:var(--muted)}.mute:hover{background:#ffffff0a;color:var(--ink);box-shadow:none}.mute svg{width:20px;height:20px}
+.mute .off{display:none}.mute[aria-pressed=true] .wave{display:none}.mute[aria-pressed=true] .off{display:inline}.mute[aria-pressed=true]{color:#64748b}
+@media(max-width:480px){.mute{width:30px;height:30px;min-height:0}.mute svg{width:17px;height:17px}}

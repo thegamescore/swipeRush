@@ -6,4 +6,4 @@ export function segmentHitsCircle(a, b, object, tolerance = 0) {
 }
 export function applyHit(score, bomb, rules) { return Math.max(0, score + (bomb ? -rules.bombPenalty : rules.productPoints)); }
 export function comboPoints(count, rules) { return Math.max(0, count - 1) * rules.comboBonus; }
-export function toWorld(clientX, clientY, bounds) { return { x: (clientX - bounds.left) / bounds.width * 1000, y: (clientY - bounds.top) / bounds.height * 720 }; }
+export function toWorld(clientX, clientY, bounds, width = 1000, height = 720) { return { x: (clientX - bounds.left) / bounds.width * width, y: (clientY - bounds.top) / bounds.height * height }; }

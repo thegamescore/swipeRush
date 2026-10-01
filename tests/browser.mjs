@@ -1,3 +1,4 @@
+// Seed + strokes use 1000-wide coords, scaled to live world width.
 // Run against a locally running Chrome CDP endpoint. No browser package required.
 // Usage: node tests/browser.mjs ws://127.0.0.1:PORT/devtools/browser/ID
 import { readFile, writeFile } from 'node:fs/promises';
@@ -11,7 +12,7 @@ function command(method,params={},sid=session){return new Promise((resolve,rejec
 const source=await readFile(new URL('../game.js',import.meta.url),'utf8');
 const instrumented=source.replace("if(state==='playing')update(dt)","if(state==='playing'&&!window.__qaFreeze)update(dt)")+`
 window.__qaFreeze=true;
-window.qa={start,update,render,get data(){return {state,score,remaining,pointer,combo,objects:objects.length,pieces:pieces.length,trail:trail.length,labels:labels.length,mode}}, seed(bombs=[]){spawnIn=Infinity;objects=[300,500,700].map((x,i)=>({x,y:360,vx:0,vy:0,rotation:0,spin:0,radius:49,scale:1,bomb:bombs.includes(i),product:PRODUCTS[i],hit:false}));render()}, setScore(n){score=n;hud()},setTime(n){remaining=n;hud()}};
+window.qa={start,update,render,get data(){return {state,score,remaining,pointer,combo,objects:objects.length,pieces:pieces.length,trail:trail.length,labels:labels.length,mode}}, seed(bombs=[]){spawnIn=Infinity;objects=[300,500,700].map((x,i)=>({x:x*W/1000,y:360,vx:0,vy:0,rotation:0,spin:0,radius:49,scale:1,bomb:bombs.includes(i),product:PRODUCTS[i],hit:false}));render()}, setScore(n){score=n;hud()},setTime(n){remaining=n;hud()}};
 `;
 ws.onmessage=async event=>{
  const message=JSON.parse(event.data);
