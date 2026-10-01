@@ -4,7 +4,7 @@ A 30-second Canvas arcade game with semantic HTML screens and Pointer Events con
 
 ## Run
 
-Requires Node.js 20.19+ or 22.12+.
+Requires Node.js 22.12+ (including the Wrangler deployment CLI).
 
 ```sh
 npm install
@@ -19,6 +19,21 @@ npm run preview  # Preview the production build (default port 4173)
 ```
 
 Deploy the generated `dist/` directory to any static host.
+
+## Publish to Cloudflare
+
+Use `npm run deploy` to test, build, and upload the game to Cloudflare's CDN.
+Wrangler prints the deployed URL after a successful upload.
+See [the deployment guide](docs/deployment.md) for account setup, credentials,
+custom domains, CI, verification, and rollback.
+Forward [this short setup README](README-CLOUDFLARE.md) to the Cloudflare owner.
+
+```sh
+cp .env.example .env.deploy
+# Fill in the account ID and API token in .env.deploy.
+npm run deploy:check # Tests, build, and dry run; no credentials or upload needed
+npm run deploy       # Publishes to the configured Cloudflare account
+```
 
 ## Play
 

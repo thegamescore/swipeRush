@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "swipe-rush",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "preview_urls": false,
+  // The account owner manages Custom Domains in the Cloudflare dashboard.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "none"
+  }
+}
