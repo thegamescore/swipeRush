@@ -7,9 +7,11 @@ const card=$('.game-card'), canvas=$('#game'), ctx=canvas.getContext('2d'), guid
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 let mode=matchMedia('(any-pointer: coarse)').matches && !matchMedia('(hover: hover) and (pointer: fine)').matches ? 'touch':'mouse';
 const full=matchMedia('(max-width: 1024px), (pointer: coarse) and (hover: none)');
-let W=C.width, state='start', score=0, remaining=C.duration, objects=[], pieces=[], labels=[], trail=[], pointer=null, combo=0, lastPoint=null, spawnIn=.35, elapsed=0, previous=0, impact=0, sparks=[], flashes=[], shake=0, lastTick=0, lastWhoosh=0;
+const MAX_SWIPE_DURATION=500;
+const MAX_SWIPE_LENGTH=Math.hypot(C.width,C.height);
+let W=C.width, state='start', score=0, remaining=C.duration, objects=[], pieces=[], labels=[], trail=[], pointer=null, combo=0, lastPoint=null, swipeTimer=null, swipeStarted=0, swipeExpired=false, swipeDistance=0, spawnIn=.35, elapsed=0, previous=0, impact=0, sparks=[], flashes=[], shake=0, lastTick=0, lastWhoosh=0;
 const rand=(a,b)=>a+Math.random()*(b-a);
-function inputMode(type) { if(!type)return;mode=type;$('#input-guide').textContent=type==='mouse'?'Click and drag to slice products.':type==='pen'?'Press and drag to slice products.':'Swipe your finger to slice products.'; }
+function inputMode(type) { if(!type)return;mode=type;$('#input-guide').textContent=type==='mouse'?'One swipe at a time. Release and click to start again.':type==='pen'?'One swipe at a time. Release and press again.':'One swipe at a time. Lift and touch again.'; }
 inputMode(mode);
 window.addEventListener('pointerdown',e=>inputMode(e.pointerType),{passive:true});
 window.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'&&mode!=='mouse')inputMode('mouse')},{passive:true});
@@ -40,10 +42,10 @@ muteButton.addEventListener('click',toggleMute);syncMute();
 window.addEventListener('keydown',e=>{if((e.key==='m'||e.key==='M')&&!e.repeat&&!e.ctrlKey&&!e.metaKey&&!e.altKey)toggleMute()});
 function hud(){ $('#score').textContent=score;$('#timer').textContent=Math.ceil(remaining);$('.time-stat').classList.toggle('urgent',remaining<=5); }
 function setState(next){state=next;card.dataset.state=next;$('.start-screen').hidden=next!=='start';$('.result-screen').hidden=next!=='result';$('.hud').hidden=next!=='playing';$('.instruction-strip>span').hidden=next!=='playing';canvas.style.pointerEvents=next==='playing'?'auto':'none';}
-function release(){const id=pointer;pointer=null;lastPoint=null;combo=0;if(id!==null&&canvas.hasPointerCapture(id))canvas.releasePointerCapture(id);}
+function release(){swipeExpired=false;$('.instruction-strip>span').textContent='Slice products. Avoid bombs.';const id=pointer;pointer=null;lastPoint=null;swipeDistance=0;combo=0;if(swipeTimer!==null){window.clearTimeout?.(swipeTimer);swipeTimer=null;}if(id!==null&&canvas.hasPointerCapture(id))canvas.releasePointerCapture(id);}
 function start(){release();sfx.unlock();sfx.start();sparks=[];flashes=[];shake=0;lastTick=0;score=0;remaining=C.duration;elapsed=0;spawnIn=.25;objects=[];pieces=[];labels=[];trail=[];impact=0;previous=performance.now();setState('playing');hud();$('#announcement').textContent='Round started. 30 seconds.';}
 $('#start').addEventListener('click',start);$('#restart').addEventListener('click',start);
-function finishStroke(){if(combo>=2){const bonus=comboPoints(combo,C);score+=bonus;labels.push({x:Math.max(120,Math.min(W-120,lastPoint?.x||W/2)),y:Math.max(90,Math.min(620,lastPoint?.y||350)),text:`Combo ×${combo}  +${bonus}`,life:1.05,max:1.05,combo:true,pop:.22});sfx.combo(combo);hud()}release();}
+function finishStroke(expired=false){if(combo>=2){const bonus=comboPoints(combo,C);score+=bonus;labels.push({x:Math.max(120,Math.min(W-120,lastPoint?.x||W/2)),y:Math.max(90,Math.min(620,lastPoint?.y||350)),text:`Combo ×${combo}  +${bonus}`,life:1.05,max:1.05,combo:true,pop:.22});sfx.combo(combo);hud()}if(expired){swipeExpired=true;combo=0;lastPoint=null;trail=[];if(swipeTimer!==null){window.clearTimeout?.(swipeTimer);swipeTimer=null;}$('.instruction-strip>span').textContent=mode==='touch'?'Lift to swipe again.':'Release to swipe again.';}else release();}
 function finish(){finishStroke();remaining=0;objects=[];pieces=[];labels=[];trail=[];sparks=[];flashes=[];impact=0;shake=0;setState('result');sfx.end();$('#final-score').textContent=score;$('#announcement').textContent=`Round complete. Final score ${score}.`;$('#restart').focus({preventScroll:true});}
 function spawn(){
   const progress=elapsed/C.duration,count=progress<.22||W<700?2:Math.random()<.45?3:2;
@@ -84,20 +86,33 @@ function slice(a,b){
 function point(e){return toWorld(e.clientX,e.clientY,canvas.getBoundingClientRect(),W,C.height)}
 canvas.addEventListener('pointerdown',e=>{
   if(state!=='playing'||pointer!==null||!e.isPrimary||e.button!==0)return;
-  e.preventDefault();inputMode(e.pointerType);pointer=e.pointerId;combo=0;lastPoint=point(e);trail=[{...lastPoint,life:.2}];canvas.setPointerCapture(pointer);
+  e.preventDefault();inputMode(e.pointerType);pointer=e.pointerId;swipeExpired=false;swipeStarted=performance.now();combo=0;swipeDistance=0;lastPoint=point(e);trail=[{...lastPoint,life:.2}];canvas.setPointerCapture(pointer);
+  swipeTimer=window.setTimeout(()=>{swipeTimer=null;if(pointer!==null&&state==='playing')finishStroke(true)},MAX_SWIPE_DURATION);
 });
 canvas.addEventListener('pointermove',e=>{
   if(e.pointerId!==pointer||state!=='playing')return;
   if(e.pointerType==='mouse'&&!(e.buttons&1)){finishStroke();return;}
   e.preventDefault();
+  moveStroke(e);
+});
+function moveStroke(e){
+  if(swipeExpired)return;
+  if(performance.now()-swipeStarted>=MAX_SWIPE_DURATION){finishStroke(true);return;}
   const events=e.getCoalescedEvents?.();
-  let travel=0;
-  for(const sample of events?.length?events:[e]){const p=point(sample),d=lastPoint?Math.hypot(p.x-lastPoint.x,p.y-lastPoint.y):0;if(d>.2){slice(lastPoint,p);travel+=d;trail.push({...p,life:.2});if(d>18&&Math.random()<.35)burst(p.x,p.y,'#c4b5fd',1,90);lastPoint=p;}}
+  let travel=0,limitReached=false;
+  for(const sample of events?.length?events:[e]){
+    const target=point(sample),dx=target.x-lastPoint.x,dy=target.y-lastPoint.y,d=Math.hypot(dx,dy);
+    if(d<=.2)continue;
+    const step=Math.min(d,MAX_SWIPE_LENGTH-swipeDistance),p=step<d?{x:lastPoint.x+dx/d*step,y:lastPoint.y+dy/d*step}:target;
+    if(step>0){slice(lastPoint,p);travel+=step;swipeDistance+=step;trail.push({...p,life:.2});if(step>18&&Math.random()<.35)burst(p.x,p.y,'#c4b5fd',1,90);lastPoint=p;}
+    if(swipeDistance>=MAX_SWIPE_LENGTH){limitReached=true;break;}
+  }
   // Whoosh on fast flicks. Throttled so long drags don't drone.
   const now=performance.now();if(travel>40&&now-lastWhoosh>150){sfx.swipe(travel);lastWhoosh=now;}
   trail=trail.slice(-48);
-});
-canvas.addEventListener('pointerup',e=>{if(e.pointerId===pointer){const p=point(e);if(lastPoint&&Math.hypot(p.x-lastPoint.x,p.y-lastPoint.y)>.2)slice(lastPoint,p);lastPoint=p;finishStroke()}});
+  if(limitReached)finishStroke(true);
+}
+canvas.addEventListener('pointerup',e=>{if(e.pointerId===pointer){moveStroke(e);finishStroke()}});
 canvas.addEventListener('pointercancel',e=>{if(e.pointerId===pointer)finishStroke()});
 canvas.addEventListener('lostpointercapture',e=>{if(e.pointerId===pointer)finishStroke()});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
