@@ -135,12 +135,12 @@ function setState(next) {
   $(".start-screen").hidden = next !== "start";
   $(".result-screen").hidden = next !== "result";
   $(".hud").hidden = next !== "playing";
-  $(".instruction-strip>span").hidden = next !== "playing";
+  $(".instruction-strip>span").hidden = true;
   canvas.style.pointerEvents = next === "playing" ? "auto" : "none";
 }
 function release() {
   swipeExpired = false;
-  $(".instruction-strip>span").textContent = "Slice products. Avoid bombs.";
+  $(".instruction-strip>span").hidden = true;
   const id = pointer;
   pointer = null;
   lastPoint = null;
@@ -204,6 +204,7 @@ function finishStroke(expired = false) {
     }
     $(".instruction-strip>span").textContent =
       mode === "touch" ? "Lift to swipe again." : "Release to swipe again.";
+    $(".instruction-strip>span").hidden = false;
   } else release();
 }
 function finish() {

@@ -141,6 +141,7 @@ test("start contains only its requested visible UI; gameplay reveals HUD", () =>
   assert.equal(nodes[".result-screen"].hidden, true);
   api.start();
   assert.equal(nodes[".hud"].hidden, false);
+  assert.equal(nodes[".instruction-strip>span"].hidden, true);
   assert.equal(nodes[".start-screen"].hidden, true);
   assert.equal(api.data.remaining, 30);
 });
@@ -292,7 +293,7 @@ test("hard swipe deadline survives movement, awards combo once, and requires rel
   emit("pointerup", 850, 360);
   assert.equal(api.data.score, 35);
 });
-test("stationary touch expires and lifting restores instructions", () => {
+test("stationary touch expires and lifting hides the reminder", () => {
   const { api, emit, advance, nodes } = setup(true);
   api.start();
   api.seed();
@@ -302,12 +303,10 @@ test("stationary touch expires and lifting restores instructions", () => {
     nodes[".instruction-strip>span"].textContent,
     "Lift to swipe again.",
   );
+  assert.equal(nodes[".instruction-strip>span"].hidden, false);
   emit("pointerup", 850, 360);
   assert.equal(api.data.score, 0);
-  assert.equal(
-    nodes[".instruction-strip>span"].textContent,
-    "Slice products. Avoid bombs.",
-  );
+  assert.equal(nodes[".instruction-strip>span"].hidden, true);
 });
 test("release enforces time limit even before timeout callback runs", () => {
   const { api, emit, setTime } = setup();
@@ -336,10 +335,7 @@ test("restart cancels old swipe deadline", () => {
   api.start();
   emit("pointerdown", 150, 360);
   advance(250);
-  assert.equal(
-    nodes[".instruction-strip>span"].textContent,
-    "Slice products. Avoid bombs.",
-  );
+  assert.equal(nodes[".instruction-strip>span"].hidden, true);
   advance(250);
   assert.equal(
     nodes[".instruction-strip>span"].textContent,
