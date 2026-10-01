@@ -30,7 +30,7 @@ Forward [this short setup README](README-CLOUDFLARE.md) to the Cloudflare owner.
 
 ```sh
 cp .env.example .env.deploy
-# Fill in the account ID and API token in .env.deploy.
+# Fill in credentials and confirm the Worker name and URL settings in .env.deploy.
 npm run deploy:check # Tests, build, and dry run; no credentials or upload needed
 npm run deploy       # Publishes to the configured Cloudflare account
 ```

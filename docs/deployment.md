@@ -22,15 +22,18 @@ zone; the owner handles those separately. The domain must be in an active
 Cloudflare zone in the same account. Ordinary deployments do not need to change
 the domain connection.
 
-The checked-in `wrangler.jsonc` enables the stable `workers.dev` URL and disables
-per-version preview URLs. It omits `routes` so the deployment does not configure
-Custom Domains. The owner can attach a Custom Domain separately. If the site
-must only be accessible on that domain, set `workers_dev` to `false` after the
-domain is ready; the normal setup keeps it enabled so Wrangler prints a link.
+All deployment settings are in `.env.deploy` (copy `.env.example`). No source
+code or Wrangler configuration edits are needed when the account or Worker name
+changes. Set `CLOUDFLARE_WORKER_NAME` to the exact name created by the owner.
 
-If the owner chooses a different Worker name, update `name` in `wrangler.jsonc`
-before deploying. Use a dedicated hostname such as `swipe.example.com`; this
-build assumes it is served at the hostname root, not under a subdirectory.
+`CLOUDFLARE_WORKERS_DEV=true` keeps the stable workers.dev URL enabled;
+`CLOUDFLARE_PREVIEW_URLS=false` disables per-version preview URLs. For a site
+accessible only through the production domain, set `CLOUDFLARE_WORKERS_DEV=false`
+after the owner connects that domain. Boolean values must be `true` or `false`.
+
+Custom Domains stay under the owner's control in the dashboard. Deployments omit
+`routes` and do not configure that connection. Use a dedicated hostname such as
+`swipe.example.com`; the game must be served at the hostname root.
 
 ## Local setup
 
@@ -46,12 +49,18 @@ Edit `.env.deploy`:
 ```dotenv
 CLOUDFLARE_ACCOUNT_ID=your_32_character_account_id
 CLOUDFLARE_API_TOKEN=your_deployment_token
+CLOUDFLARE_WORKER_NAME=swipe-rush
+CLOUDFLARE_WORKERS_DEV=true
+CLOUDFLARE_PREVIEW_URLS=false
 ```
 
-| Variable | Purpose | Secret? |
-| --- | --- | --- |
-| `CLOUDFLARE_ACCOUNT_ID` | Selects the destination account | No |
-| `CLOUDFLARE_API_TOKEN` | Authorizes deployment to the Worker | Yes |
+| Variable                  | Purpose                                              | Secret? |
+| ------------------------- | ---------------------------------------------------- | ------- |
+| `CLOUDFLARE_ACCOUNT_ID`   | Selects the destination account                      | No      |
+| `CLOUDFLARE_API_TOKEN`    | Authorizes deployment to the Worker                  | Yes     |
+| `CLOUDFLARE_WORKER_NAME`  | Existing Worker name; defaults to `swipe-rush`       | No      |
+| `CLOUDFLARE_WORKERS_DEV`  | Enable stable workers.dev URL; defaults to `true`    | No      |
+| `CLOUDFLARE_PREVIEW_URLS` | Enable per-version preview URLs; defaults to `false` | No      |
 
 The deployment script loads `.env.deploy`; existing shell/CI variables take
 precedence. `.env.example` is only a template. Local environment files and
@@ -66,12 +75,15 @@ npm run deploy
 ```
 
 `deploy:check` runs the game tests, builds production assets, and runs
-`wrangler deploy --dry-run`. It does not load `.env.deploy` or publish anything.
+`wrangler deploy --dry-run`. It loads `.env.deploy` to check the same settings as publishing, but does not
+require credentials or publish anything.
 It validates local packaging, not account permissions or DNS.
 
 `deploy` validates credentials, runs tests, rebuilds `dist/`, then uploads using
 the pinned local Wrangler version. A failed step stops the deployment. Each
-successful deployment replaces the live version of `swipe-rush`.
+successful deployment replaces the live version of `CLOUDFLARE_WORKER_NAME`.
+The script generates an ignored `.wrangler/deploy-settings.json` from the base
+Wrangler configuration and environment settings; it contains no credentials.
 
 **The link appears in the terminal when deployment finishes successfully.** With
 `workers.dev` enabled, it looks like
@@ -94,7 +106,9 @@ cache expiry. Keep unversioned files out of `/assets/`.
 ## CI
 
 Provide `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` through the CI
-environment (store the token as a secret), then run:
+environment (store the token as a secret). Set `CLOUDFLARE_WORKER_NAME`,
+`CLOUDFLARE_WORKERS_DEV`, and `CLOUDFLARE_PREVIEW_URLS` there if their defaults
+do not match your setup, then run:
 
 ```sh
 npm ci
