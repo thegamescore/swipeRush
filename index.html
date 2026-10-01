@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d101b">
+  <meta name="description" content="A thirty-second swipe arcade. Slice products, chain combos, and avoid bombs.">
+  <title>Swipe Rush</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-card" aria-label="Swipe Rush game" data-state="start">
+    <header class="status-strip">
+      <div class="hud" hidden><div class="score-stat"><span class="stat-label">SCORE</span><span id="score">0</span></div><div class="time-stat"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="11" r="6.5"/><path d="M10 7v4l2 1M8 1h4M10 1v3"/></svg><span id="timer" aria-label="Seconds remaining">30</span><span class="time-unit">s</span></div></div>
+    </header>
+    <div class="playfield">
+      <canvas id="game" aria-label="Swipe playfield. Hold and drag across products; avoid round bombs with a fuse."></canvas>
+      <section class="screen start-screen" aria-labelledby="title">
+        <h1 id="title">Swipe <span>Rush</span><svg class="title-mark" viewBox="0 0 32 42" aria-hidden="true"><path d="M16 3 4 34M28 8 16 39"/></svg></h1>
+        <figure class="guide">
+          <canvas id="guide" width="1000" height="330" aria-hidden="true"></canvas>
+          <figcaption><p id="input-guide">Click and drag to slice products.</p><p class="guide-secondary">Slice several in one swipe for combos.<br class="mobile-break"> Avoid bombs.</p></figcaption>
+        </figure>
+        <button id="start" type="button">Start Game <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+      </section>
+      <section class="screen result-screen" aria-labelledby="result-title" hidden>
+        <div class="result-heading"><span class="completion-mark" aria-hidden="true">✓</span><h2 id="result-title">Round complete.</h2></div>
+        <div class="result-score"><span id="final-score">0</span><span>FINAL SCORE</span></div>
+        <button id="restart" type="button">Play Again <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+      </section>
+    </div>
+    <footer class="instruction-strip"><span hidden>Slice products. <span>Avoid bombs.</span></span></footer>
+    <p id="announcement" class="sr-only" aria-live="polite"></p>
+  </main>
+  <script type="module" src="game.js"></script>
+</body>
+</html>
